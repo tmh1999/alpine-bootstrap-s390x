@@ -1,0 +1,32 @@
+diff --git a/main/binutils/APKBUILD b/main/binutils/APKBUILD
+index d8f9a96..ad18488 100644
+--- a/main/binutils/APKBUILD
++++ b/main/binutils/APKBUILD
+@@ -8,7 +8,8 @@ depends=""
+ makedepends="bison flex texinfo zlib-dev"
+ arch="all"
+ license="GPL2 GPL3+ LGPL2 BSD"
+-subpackages="$pkgname-dev $pkgname-doc $pkgname-libs $pkgname-gold"
++subpackages="$pkgname-dev $pkgname-doc $pkgname-libs"
++# $pkgname-gold"
+ 
+ if [ "$CHOST" != "$CTARGET" ]; then
+ 	pkgname="$pkgname-$CTARGET_ARCH"
+@@ -45,15 +46,15 @@ build() {
+ 		--disable-multilib \
+ 		--enable-shared \
+ 		--enable-ld=default \
+-		--enable-gold=yes \
+ 		--enable-64-bit-bfd \
+ 		--enable-plugins \
+ 		--enable-relro \
+ 		$_cross_configure \
+ 		--disable-werror \
+ 		--disable-nls \
+-		--with-system-zlib \
+ 		|| return 1
++	#--enable-gold=yes \
++	#--with-system-zlib \
+ 	make || return 1
+ }
+ 

@@ -1,0 +1,48 @@
+diff --git a/main/apk-tools/APKBUILD b/main/apk-tools/APKBUILD
+index acbc531..64211fd 100644
+--- a/main/apk-tools/APKBUILD
++++ b/main/apk-tools/APKBUILD
+@@ -15,6 +15,7 @@ fi
+ source="http://dev.alpinelinux.org/archive/$pkgname/$pkgname-$pkgver.tar.xz
+ 	fix-crossbuild.patch
+ 	add-aarch64.patch
++	add-s390x.patch
+ 	"
+ 
+ url="http://git.alpinelinux.org/cgit/apk-tools/"
+@@ -86,10 +87,13 @@ luaapk() {
+ 
+ md5sums="cfa2a6414174fdf360ced631a48ec018  apk-tools-2.6.7.tar.xz
+ 8c76a52a7865560cf9f5dc53cc8a769b  fix-crossbuild.patch
+-5e419d9ffadb3fa3993a36e45502705b  add-aarch64.patch"
++5e419d9ffadb3fa3993a36e45502705b  add-aarch64.patch
++8f72f737cefe3f82e9b67461d8b061de  add-s390x.patch"
+ sha256sums="0ce0c9d20b526a40d8a1ad5a2ee16645239c256f634305e74419f1335b5acfdf  apk-tools-2.6.7.tar.xz
+ daceb53e5b8abf7277630980c6bf3b5e9d7117c5cf50a233bcafb42f0f290941  fix-crossbuild.patch
+-05805f88b53fe954b3d4520afb8e0b454b5cfc20370c3f3c0cd3d09235a8bbbb  add-aarch64.patch"
++05805f88b53fe954b3d4520afb8e0b454b5cfc20370c3f3c0cd3d09235a8bbbb  add-aarch64.patch
++1e2383192d7c71dc4591561290fd4f81d0698e0a2f36136c7d001064e3dcd9c8  add-s390x.patch"
+ sha512sums="ad27c2b0eeb66917abbfa229f5fb7b533c36c0393ba954fffce5c8a47ca030dfe8af30aa6dec95d323c51e8e0fd5b2efc59d6242b1ff592c561b5b178c0ee9fa  apk-tools-2.6.7.tar.xz
+ b739b94fba70e0dcb6ffd16627934ce636a4dd400c001ad27bbcb98aa40022942d62bc070eecdbeb8a1b777cd6bc14f89dea9f2806832e479e761e4ede6b8f35  fix-crossbuild.patch
+-3aca8e04375bbb3f33dec6b60dcd011d7ff26d9cf326315b0f4b91ada3892ecb0599e32f9294cade6bdc8cbc36cc9fda68e19c522fe923998f3c8538c6a7b997  add-aarch64.patch"
++3aca8e04375bbb3f33dec6b60dcd011d7ff26d9cf326315b0f4b91ada3892ecb0599e32f9294cade6bdc8cbc36cc9fda68e19c522fe923998f3c8538c6a7b997  add-aarch64.patch
++8bca298084c2a9db3b5c9ef955697cba6cd0e3cf04236c4de98708d52c8ee4bc8b5cd3dc6a62f60a336d22f45842d9e445df2ba2a132a0d1e41da3a0c92ac4f4  add-s390x.patch"
+diff --git a/main/apk-tools/add-s390x.patch b/main/apk-tools/add-s390x.patch
+new file mode 100644
+index 0000000..27e9edb
+--- /dev/null
++++ b/main/apk-tools/add-s390x.patch
+@@ -0,0 +1,12 @@
++--- a/src/apk_defines.h
+++++ b/src/apk_defines.h
++@@ -95,6 +95,8 @@ extern char **apk_argv;
++ #define APK_DEFAULT_ARCH	"armel"
++ #elif defined(__aarch64__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
++ #define APK_DEFAULT_ARCH	"aarch64"
+++#elif defined(__s390x__)
+++#define APK_DEFAULT_ARCH	"s390x"
++ #else
++ #error APK_DEFAULT_ARCH not detected for this architecture
++ #endif
++ 
+\ No newline at end of file

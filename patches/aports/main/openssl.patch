@@ -1,0 +1,29 @@
+diff --git a/main/openssl/APKBUILD b/main/openssl/APKBUILD
+index 90e8986..06d467e 100644
+--- a/main/openssl/APKBUILD
++++ b/main/openssl/APKBUILD
+@@ -63,6 +63,7 @@ build() {
+ 	arm*)   _target="linux-armv4" ;;
+ 	x86)    _target="linux-elf" ;;
+ 	x86_64) _target="linux-x86_64"; _optflags="enable-ec_nistp_64_gcc_128" ;;
++	s390*) _target="linux64-s390x" ;;
+ 	*)	msg "Unable to determine architecture from (CARCH=$CARCH)" ; return 1 ;;
+ 	esac
+ 
+@@ -71,6 +72,7 @@ build() {
+ 	[ -n "$CBUILDROOT" ] && CC="$CC --sysroot=${CBUILDROOT}"
+ 
+ 	perl ./Configure $_target --prefix=/usr \
++		-no-asm \
+ 		--libdir=lib \
+ 		--openssldir=/etc/ssl \
+ 		shared zlib enable-montasm enable-md2 $_optflags \
+@@ -79,7 +81,7 @@ build() {
+ 		enable-ssl2 \
+ 		|| return 1
+ 
+-	make && make build-shared || return 1
++	make depend && make && make build-shared || return 1
+ 
+ 	# Build standalone version c_rehash app, so the huge openssl
+ 	# binary is not mandatory requirement of ca-certificates
