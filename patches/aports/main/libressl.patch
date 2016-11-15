@@ -1,0 +1,12 @@
+diff --git a/main/libressl/APKBUILD b/main/libressl/APKBUILD
+index f7ab8cc..7677aa0 100644
+--- a/main/libressl/APKBUILD
++++ b/main/libressl/APKBUILD
+@@ -26,6 +26,7 @@ build() {
+ 		--sysconfdir=/etc \
+ 		--mandir=/usr/share/man \
+ 		--localstatedir=/var \
++		--disable-asm \
+ 		|| return 1
+ 	make || return 1
+ }

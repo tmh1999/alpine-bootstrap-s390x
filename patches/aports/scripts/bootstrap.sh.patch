@@ -1,17 +1,8 @@
 diff --git a/scripts/bootstrap.sh b/scripts/bootstrap.sh
-index 9cb78c3..0c7b584 100755
+index 9cb78c3..9982b0b 100755
 --- a/scripts/bootstrap.sh
 +++ b/scripts/bootstrap.sh
-@@ -1,5 +1,8 @@
- #!/bin/sh
- 
-+# better debugging
-+set -x
-+
- TARGET_ARCH="$1"
- SUDO_APK=abuild-apk
- 
-@@ -9,7 +12,7 @@ KERNEL_PKG="linux-firmware linux-vanilla"
+@@ -9,7 +9,7 @@ KERNEL_PKG="linux-firmware linux-vanilla"
  # get abuild configurables
  [ -e /usr/share/abuild/functions.sh ] || (echo "abuild not found" ; exit 1)
  CBUILDROOT="$(CTARGET=$TARGET_ARCH . /usr/share/abuild/functions.sh ; echo $CBUILDROOT)"
@@ -20,7 +11,15 @@ index 9cb78c3..0c7b584 100755
  [ -z "$CBUILD_ARCH" ] && die "abuild is too old (use git snapshot from cross-build branch)"
  
  # deduce aports directory
-@@ -74,6 +77,10 @@ create_cross_compiler() {
+@@ -66,6 +66,7 @@ create_cross_compiler() {
+ 			# Cross build bootstrap C-library for the target
+ 			${SUDO_APK} --quiet del gcc-$TARGET_ARCH g++-$TARGET_ARCH gcc-gnat-$TARGET_ARCH
+ 			${SUDO_APK} add --repository "$REPODEST/main" gcc-pass2-$TARGET_ARCH || return 1
++
+ 			CHOST=$TARGET_ARCH BOOTSTRAP=nolibc APKBUILD=$(apkbuildname musl) abuild -r || return 1
+ 			${SUDO_APK} --quiet del gcc-pass2-$TARGET_ARCH
+ 		fi
+@@ -74,6 +75,10 @@ create_cross_compiler() {
  		apk info --quiet --installed --root "$CBUILDROOT" musl-dev || \
  			${SUDO_APK} --root "$CBUILDROOT" add --repository "$REPODEST/main" musl-dev \
  			|| return 1
@@ -31,7 +30,7 @@ index 9cb78c3..0c7b584 100755
  		CTARGET=$TARGET_ARCH APKBUILD=$(apkbuildname gcc) abuild -r || return 1
  		${SUDO_APK} add --repository "$REPODEST/main" gcc-gnat gcc-$TARGET_ARCH g++-$TARGET_ARCH gcc-gnat-$TARGET_ARCH \
  			|| return 1
-@@ -92,6 +99,11 @@ cross_compile_base() {
+@@ -92,10 +97,15 @@ cross_compile_base() {
  		${SUDO_APK} --root "$CBUILDROOT" add --repository "$REPODEST/main" libgcc musl-dev \
  		|| return 1
  
@@ -43,11 +42,25 @@ index 9cb78c3..0c7b584 100755
  	# ordered cross-build
  	for PKG in fortify-headers linux-headers musl libc-dev \
  		   busybox busybox-initscripts binutils make pkgconf \
-@@ -116,6 +128,8 @@ cross_compile_base() {
+-		   zlib openssl libfetch apk-tools \
++		   zlib libressl libfetch apk-tools \
+ 		   gmp mpfr3 mpc1 isl cloog gcc \
+ 		   openrc alpine-conf alpine-baselayout alpine-keys alpine-base build-base \
+ 		   attr libcap patch sudo acl fakeroot tar \
+@@ -106,7 +116,7 @@ cross_compile_base() {
+ 		CHOST=$TARGET_ARCH BOOTSTRAP=bootimage APKBUILD=$(apkbuildname $PKG) abuild -r || exit 1
+ 
+ 		case "$PKG" in
+-		fortify-headers | libc-dev | build-base)
++		fortify-headers | libc-dev | build-base | linux-headers)
+ 			# headers packages which are implicit but mandatory dependency
+ 			apk info --quiet --installed --root "$CBUILDROOT" $PKG || \
+ 				${SUDO_APK} --update --root "$CBUILDROOT" --repository "$REPODEST/main" add $PKG \
+@@ -116,6 +126,8 @@ cross_compile_base() {
  			# target libraries rebuilt, force upgrade
  			[ "$(apk upgrade --root "$CBUILDROOT" --repository "$REPODEST/main" --available --simulate | wc -l)" -gt 1 ] &&
  				${SUDO_APK} upgrade --root "$CBUILDROOT" --repository "$REPODEST/main" --available
-+			# again, need to fix musl
++			# again, need to fix/reinstall musl
 +			${SUDO_APK} --root "$CBUILDROOT" fix --repository "$REPODEST/main" musl
  			;;
  		esac
