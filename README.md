@@ -1,4 +1,15 @@
-This repo is dedicated to provide some patches to bootstrap Alpine Linux for s390x architecture.
+This repo is dedicated to provide patches to bootstrap Alpine Linux for s390x architecture.
+
+-------
+Status
+
+- musl s390x is merged upstream. 2 small fixes still need review. Package musl-1.1.15.tar.gz is a clone from http://git.musl-libc.org/cgit/musl/, with 2 unmerged patches http://www.openwall.com/lists/musl/2016/11/15/2, http://www.openwall.com/lists/musl/2016/11/15/3. Need to package it so we do not need to edit musl's APKBUILD too much.
+
+-------
+Bugs
+
+1. PaX on cross gcc still not work, had to disable.
+2. Cross-compiling linux-vanilla still fails.
 
 -------
 Patches
