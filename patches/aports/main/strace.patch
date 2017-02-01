@@ -1,0 +1,58 @@
+diff --git a/main/strace/APKBUILD b/main/strace/APKBUILD
+index 7d34ae5..f4ad9e7 100644
+--- a/main/strace/APKBUILD
++++ b/main/strace/APKBUILD
+@@ -7,15 +7,20 @@ url="http://sourceforge.net/projects/strace/"
+ arch="all"
+ license="BSD"
+ depends=
+-makedepends="linux-headers"
++makedepends_build=""
++makedepends_host="linux-headers"
++makedepends="$makedepends_build $makedepends_host"
+ subpackages="$pkgname-doc"
+-source="http://downloads.sourceforge.net/sourceforge/$pkgname/$pkgname-$pkgver.tar.xz"
++source="http://downloads.sourceforge.net/sourceforge/$pkgname/$pkgname-$pkgver.tar.xz
++	cross-compile-strace.patch
++	"
+ 
+ builddir="$srcdir/$pkgname-$pkgver"
+ prepare() {
+ 	default_prepare || return 1
+ 	sed -i -e 's/include <linux\/socket.h>/include <sys\/socket.h>/g' \
+ 		"$builddir"/configure || return 1
++	# [ "$CBUILD" = "$CHOST" ] || patch -p1 -i "$srcdir"/cross-compile-strace.patch
+ }
+ 
+ build() {
+@@ -41,6 +46,9 @@ package() {
+ 	make -j1 DESTDIR="$pkgdir" install
+ }
+ 
+-md5sums="1ff96209fec19914c920608ed0791864  strace-4.15.tar.xz"
+-sha256sums="c0cdc094d6141fd9dbf6aaad605142d651ae10998b660fda57fc61f7ad583ca9  strace-4.15.tar.xz"
+-sha512sums="15e96c31d901c94dc40de67a65365c6cc9a7b7b2bf96a735f5d20cbd54dc75d941e0c1da206aa76f6e98d1013bfeecb42800b23c9e146eaf756775d525fe1b66  strace-4.15.tar.xz"
++md5sums="1ff96209fec19914c920608ed0791864  strace-4.15.tar.xz
++b40396b0b05895f538cd039610634737  cross-compile-strace.patch"
++sha256sums="c0cdc094d6141fd9dbf6aaad605142d651ae10998b660fda57fc61f7ad583ca9  strace-4.15.tar.xz
++1dabb61d92e38515d5d7ed1fb72df51c7867123cccca3e2544a722e8e1c2e47b  cross-compile-strace.patch"
++sha512sums="15e96c31d901c94dc40de67a65365c6cc9a7b7b2bf96a735f5d20cbd54dc75d941e0c1da206aa76f6e98d1013bfeecb42800b23c9e146eaf756775d525fe1b66  strace-4.15.tar.xz
++a8f74c1f2b743b5a2241e34f292053006814ed7556bb3bfacba57635dc14f3d9b4afb04960aa7f0e81010acabfd261163a8d46e34940aca25e1a3a2941251065  cross-compile-strace.patch"
+diff --git a/main/strace/cross-compile-strace.patch b/main/strace/cross-compile-strace.patch
+new file mode 100644
+index 0000000..da7ef4b
+--- /dev/null
++++ b/main/strace/cross-compile-strace.patch
+@@ -0,0 +1,12 @@
++diff --git a/regs.h b/regs.h
++index d89581d..f07a2d7 100644
++--- a/regs.h
+++++ b/regs.h
++@@ -1,6 +1,7 @@
++ #ifndef STRACE_REGS_H
++ #define STRACE_REGS_H
++ 
+++#include <signal.h>
++ #include <sys/user.h>
++ 
++ #ifdef HAVE_SYS_REG_H

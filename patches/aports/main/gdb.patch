@@ -1,0 +1,129 @@
+diff --git a/main/gdb/APKBUILD b/main/gdb/APKBUILD
+index 38ff662..6bd5e99 100644
+--- a/main/gdb/APKBUILD
++++ b/main/gdb/APKBUILD
+@@ -1,16 +1,19 @@
+ # Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+ pkgname=gdb
+-pkgver=7.12.1
++pkgver=7.12
+ pkgrel=0
+ pkgdesc="The GNU Debugger"
+ url="http://sources.redhat.com/gdb/"
+ arch="all"
+ license="GPL3"
+ depends=
++makedepends_build=""
++makedepends_host="linux-headers"
+ makedepends="ncurses-dev expat-dev texinfo readline-dev python2-dev
+-	zlib-dev autoconf automake libtool linux-headers"
++	zlib-dev autoconf automake libtool $makedepends_build $makedepends_host"
+ subpackages="$pkgname-doc"
+ source="http://ftp.gnu.org/gnu/$pkgname/$pkgname-$pkgver.tar.xz
++	cross-compile-gdb.patch
+ 	"
+ 
+ _builddir="$srcdir"/$pkgname-$pkgver
+@@ -66,6 +69,9 @@ package() {
+ 	rm -rf "$pkgdir"/usr/lib
+ }
+ 
+-md5sums="193453347ddced7acb6b1cd2ee8f2e4b  gdb-7.12.1.tar.xz"
+-sha256sums="4607680b973d3ec92c30ad029f1b7dbde3876869e6b3a117d8a7e90081113186  gdb-7.12.1.tar.xz"
+-sha512sums="0ac8d0a495103611ef41167a08313a010dce6ca4c6d827cbe8558a0c1a1a8a6bfa53f1b7704251289cababbfaaf9e075550cdf741a54d6cd9ca3433d910efcd8  gdb-7.12.1.tar.xz"
++md5sums="a0a3a00f7499b0c5278ba8676745d180  gdb-7.12.tar.xz
++4969f935d37ce1942ec7f82c0746de9f  cross-compile-gdb.patch"
++sha256sums="834ff3c5948b30718343ea57b11cbc3235d7995c6a4f3a5cecec8c8114164f94  gdb-7.12.tar.xz
++5d0783b625ddb4275aa74531ee2ac8e6783397cb7f8e93a688e87ec2d4395850  cross-compile-gdb.patch"
++sha512sums="f610338b3a24dfb387c295431d806a0c1375e8ce51b8dd8bbfd2efc4612d0c0ed40ad4393508afca0071eca70688f62bc4f199da5e75ad16f64d91c3bc046033  gdb-7.12.tar.xz
++9d7fb5c99161a7bcb7c0e3fa2f2a1d38d6966c2bf5459ee526cbca966ebe8214dfe9db69017ea4511b3eb2708fbc1e81a91d09975a9fa0b7240f9b87ec7dc7d9  cross-compile-gdb.patch"
+diff --git a/main/gdb/cross-compile-gdb.patch b/main/gdb/cross-compile-gdb.patch
+new file mode 100644
+index 0000000..edd249a
+--- /dev/null
++++ b/main/gdb/cross-compile-gdb.patch
+@@ -0,0 +1,84 @@
++diff --git a/gdb/config/nm-linux.h b/gdb/config/nm-linux.h
++index 05e755e..181355c 100644
++--- a/gdb/config/nm-linux.h
+++++ b/gdb/config/nm-linux.h
++@@ -20,5 +20,11 @@
++ /* Use elf_gregset_t and elf_fpregset_t, rather than
++    gregset_t and fpregset_t.  */
++ 
+++#ifndef CROSS_COMPILE_GDB
+++#define CROSS_COMPILE_GDB
+++#include <signal.h>
+++#include <sys/user.h>
+++#endif
+++
++ #define GDB_GREGSET_T  elf_gregset_t
++ #define GDB_FPREGSET_T elf_fpregset_t
++diff --git a/gdb/gdb_proc_service.h b/gdb/gdb_proc_service.h
++index 0a9f26d..99d9cb6 100644
++--- a/gdb/gdb_proc_service.h
+++++ b/gdb/gdb_proc_service.h
++@@ -76,8 +76,10 @@ typedef enum
++   PS_NOFREGS		/* FPU register set not available for given LWP.  */
++ } ps_err_e;
++ 
+++// lwpid_t is already defined as pid_t in musl/tree/include/sys/procfs.h but
+++// we cannot include sys/procfs.h. So redefine from unsigned int to pid_t.
++ #ifndef HAVE_LWPID_T
++-typedef unsigned int lwpid_t;
+++typedef pid_t lwpid_t;
++ #endif
++ 
++ #ifndef HAVE_PSADDR_T
++diff --git a/gdb/gregset.h b/gdb/gregset.h
++index ea09cf0..b27cc03 100644
++--- a/gdb/gregset.h
+++++ b/gdb/gregset.h
++@@ -51,6 +51,9 @@ extern void supply_gregset (struct regcache *regcache,
++ extern void supply_fpregset (struct regcache *regcache,
++ 			     const gdb_fpregset_t *fpregs);
++ 
+++extern void supply_fpregset (struct regcache *regcache,
+++			     const gdb_fpregset_t *regp);
+++
++ /* Copy register values from GDB's register cache into
++    the native target gregset/fpregset.  If regno is -1, 
++    copy all the registers.  */
++@@ -60,4 +63,7 @@ extern void fill_gregset (const struct regcache *regcache,
++ extern void fill_fpregset (const struct regcache *regcache,
++ 			   gdb_fpregset_t *fpregs, int regno);
++ 
+++extern void fill_fpregset (const struct regcache *regcache,
+++			   gdb_fpregset_t *regp, int regno);
+++
++ #endif
++diff --git a/gdb/s390-linux-nat.c b/gdb/s390-linux-nat.c
++index e91297b..07c3340 100644
++--- a/gdb/s390-linux-nat.c
+++++ b/gdb/s390-linux-nat.c
++@@ -189,6 +189,12 @@ supply_fpregset (struct regcache *regcache, const fpregset_t *regp)
++   regcache_supply_regset (&s390_fpregset, regcache, -1, regp,
++ 			  sizeof (fpregset_t));
++ }
+++void
+++supply_fpregset (struct regcache *regcache, const gdb_fpregset_t *regp)
+++{
+++  regcache_supply_regset (&s390_fpregset, regcache, -1, regp,
+++			  sizeof (fpregset_t));
+++}
++ 
++ /* Fill register REGNO (if it is a general-purpose register) in
++    *REGP with the value in GDB's register array.  If REGNO is -1,
++@@ -199,6 +205,12 @@ fill_fpregset (const struct regcache *regcache, fpregset_t *regp, int regno)
++   regcache_collect_regset (&s390_fpregset, regcache, regno, regp,
++ 			   sizeof (fpregset_t));
++ }
+++void
+++fill_fpregset (const struct regcache *regcache, gdb_fpregset_t *regp, int regno)
+++{
+++  regcache_collect_regset (&s390_fpregset, regcache, regno, regp,
+++			   sizeof (fpregset_t));
+++}
++ 
++ /* Find the TID for the current inferior thread to use with ptrace.  */
++ static int
