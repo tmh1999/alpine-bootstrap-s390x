@@ -1,43 +1,5 @@
-This repo is dedicated to provide patches to bootstrap Alpine Linux for s390x architecture.
+Most essential patches had been merged upstream.
 
--------
-* Docker
+Alpine s390x Docker image could be found at : https://hub.docker.com/r/tmh1999/alpine-s390x/
 
-To run :
-```
-$ docker run -ti tmh1999/alpine-s390x sh
-/ # apk update
-/ # apk add gcc
-/ # gcc -v
-```
-
-List of currently supported Alpine s390x packages : [packages.list] [packages.list.url]
-
--------
-* Patches
-
-Most patches in patches/aports are already merged in Alpine's upstream tree.
-
--------
-* Musl s390x status
-
-musl s390x is merged upstream. Package musl-1.1.15.tar.gz is a clone from http://git.musl-libc.org/cgit/musl/, with 2 unmerged patches http://www.openwall.com/lists/musl/2016/11/15/2, http://www.openwall.com/lists/musl/2016/11/15/3.
-
--------
-* Issues
-
-1. Had to disable PaX while building native gcc. Same on Alpine aarch64. Looks like grsecurity does not support s390x. So we stick with vanilla flavor.
-2. Cross-compiling linux-vanilla still fails. Needed for building kernel image (or ISO image).
-
--------
-* More infomation
-
-To keep track of current/experimental Alpine Linux porting system and specifically s390x port, please check out :
-
-http://lists.alpinelinux.org/alpine-devel/5427.html
-
-http://lists.alpinelinux.org/alpine-devel/5386.html
-
-
-
-[packages.list.url]: https://github.com/tmh1999/alpine-s390x-repo/blob/master/packages.list
+Temporary package repository could be found at : https://github.com/tmh1999/alpine-s390x-repo/
