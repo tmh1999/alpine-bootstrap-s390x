@@ -1,5 +1,3 @@
-Most essential patches had been merged upstream.
+As of 3.6.0 release, Alpine Linux starts supporting s390x architecture.
 
-Alpine s390x Docker image could be found at : https://hub.docker.com/r/tmh1999/alpine-s390x/
-
-Temporary package repository could be found at : https://github.com/tmh1999/alpine-s390x-repo/
+Files in this repo are deprecated.
